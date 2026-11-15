@@ -2,7 +2,7 @@
 
 Infrastructure for three environments (dev, test, prod) defined in Terraform and deployed by a GitHub Actions pipeline. Terraform state lives in a versioned, encrypted S3 bucket with native state locking. Ansible configures the servers afterward.
 
-> The AWS resources have been torn down to avoid cost. The code, pipeline history, and screenshots below show the working project.
+> The AWS resources have been torn down to avoid cost. The code and pipeline history show the working project.
 
 ## Architecture
 
@@ -61,14 +61,6 @@ flowchart LR
 4. A concurrency group allows one run per environment at a time.
 
 Changes move through the branches in order: feature branch to `dev`, then `dev` to `test`, then `test` to `prod`.
-
-## Screenshots
-
-![Pipeline run: plan then apply](docs/images/pipeline-run.png)
-
-![Pull request with a passing plan check](docs/images/pr-plan-check.png)
-
-![Prod deployment waiting for approval](docs/images/prod-approval.png)
 
 ## Issues solved along the way
 
