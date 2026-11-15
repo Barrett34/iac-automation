@@ -1,0 +1,74 @@
+name: Terraform
+
+on:
+  push:
+    branches: [dev, test, prod]
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform.yml"
+  pull_request:
+    branches: [dev, test, prod]
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform.yml"
+
+permissions:
+  contents: read
+
+# One run per environment at a time, so two runs never fight over the state lock
+concurrency:
+  group: terraform-${{ github.base_ref || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-2
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  # Branch name = environment name (for PRs, the branch being merged into)
+  TF_ENV: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
+
+defaults:
+  run:
+    working-directory: terraform
+
+jobs:
+  plan:
+    name: Plan (${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+
+      - name: Format check
+        run: terraform fmt -check -recursive
+
+      - name: Init
+        run: terraform init -backend-config="key=${TF_ENV}/terraform.tfstate"
+
+      - name: Validate
+        run: terraform validate
+
+      - name: Plan
+        run: terraform plan -var-file="env/${TF_ENV}.tfvars"
+
+  apply:
+    name: Apply (${{ github.ref_name }})
+    needs: plan
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.8
+
+      - name: Init
+        run: terraform init -backend-config="key=${TF_ENV}/terraform.tfstate"
+
+      - name: Apply
+        run: terraform apply -auto-approve -var-file="env/${TF_ENV}.tfvars"
