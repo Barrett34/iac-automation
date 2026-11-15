@@ -20,3 +20,7 @@ variable "allowed_ssh_cidr" {
   default     = "0.0.0.0/0" # demo default; tighten to your IP later
   description = "CIDR allowed to SSH to instances"
 }
+
+variable "worker_count" {
+  type = number
+}
