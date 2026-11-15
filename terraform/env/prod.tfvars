@@ -1,4 +1,4 @@
 environment   = "prod"
 vpc_cidr      = "10.2.0.0/16"
 instance_type = "t3.micro"
-worker_node   = 5
+worker_count   = 5
