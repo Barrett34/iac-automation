@@ -24,3 +24,9 @@ variable "allowed_ssh_cidr" {
 variable "worker_count" {
   type = number
 }
+
+variable "key_name" {
+  type        = string
+  default     = null
+  description = "EC2 key pair name for SSH access (optional)"
+}
